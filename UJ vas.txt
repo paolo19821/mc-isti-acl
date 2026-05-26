@@ -1,0 +1,434 @@
+SUB INTERFACE NÉLKÜLI VERZIÓ!
+
+-----------------------------------
+
+Kötések
+Sziszi_A S0/1/0 <----> Sziszi_B S0/1/0
+
+Sziszi_A G0/0/0 <----> Sziszi Wifi Internet
+
+Sziszi_B G0/0/0 <----> SW02 Fa0/24
+
+PC1 <----> SW01 Fa0/23
+
+SW01 Fa0/16 <----> SW02 Fa0/16
+SW01 Fa0/17 <----> SW02 Fa0/17
+SW01 Fa0/18 <----> SW02 Fa0/18
+
+PC1 azért SW01 Fa0/23:
+
+Fa0/1-10 = VLAN10
+Fa0/11-15 = VLAN20
+Fa0/23 = VLANon kívüli port
+
+-----------------------------------
+
+Sziszi_A
+enable
+conf t
+
+hostname Sziszi_A
+
+interface s0/1/0
+ip address 10.10.11.1 255.255.255.252
+no shutdown
+exit
+
+
+//
+show controllers serial 0/1/0
+
+Ha:
+
+DCE
+
+akkor:
+
+conf t
+interface s0/1/0
+clock rate 1280000
+no shutdown
+exit
+//
+
+
+interface g0/0/0
+ip address 192.168.21.1 255.255.255.248
+no shutdown
+exit
+
+interface g0/0/1
+ip address 192.168.100.11 255.255.255.128
+no shutdown
+exit
+
+ip route 0.0.0.0 0.0.0.0 g0/0/1
+
+router ospf 1
+network 10.10.11.0 0.0.0.3 area 0
+network 192.168.21.0 0.0.0.7 area 0
+network 192.168.100.0 0.0.0.127 area 0
+default-information originate
+exit
+
+ip access-list extended BLOKK_BADACSONY
+deny tcp any host (BADACSONY.HU IP CÍME (ping)) eq 80
+permit ip any any
+exit
+
+interface g0/0/0
+ip access-group BLOKK_BADACSONY out
+exit
+
+username admin secret Sziszipww
+
+ip domain-name sziszi.local
+
+crypto key generate rsa
+
+1024
+
+ip ssh version 2
+
+line vty 0 4
+login local
+transport input ssh
+exit
+
+end
+
+copy running-config startup-config
+
+-----------------------------------
+
+Sziszi_B
+enable
+
+conf t
+
+hostname Sziszi_B
+
+interface s0/1/0
+ip address 10.10.11.2 255.255.255.252
+no shutdown
+exit
+
+interface g0/0/0
+ip address 192.168.41.1 255.255.255.128
+no shutdown
+exit
+
+..................................
+
+ip dhcp excluded-address 192.168.41.1 192.168.41.10
+
+..................................
+
+ip dhcp pool LAN
+
+network 192.168.41.0 255.255.255.128
+
+default-router 192.168.41.1
+
+dns-server 8.8.8.8
+
+exit
+
+..................................
+
+router ospf 1
+
+network 10.10.11.0 0.0.0.3 area 0
+
+network 192.168.41.0 0.0.0.127 area 0
+
+exit
+
+username admin secret Sziszipww
+
+ip domain-name sziszi.local
+
+crypto key generate rsa
+
+1024
+
+ip ssh version 2
+
+line vty 0 4
+
+login local
+
+transport input ssh
+
+exit
+
+end
+
+copy running-config startup-config
+
+-----------------------------------
+
+SW01
+enable
+
+conf t
+
+hostname SW01
+
+vlan 10
+name IRODA
+exit
+
+vlan 20
+name TANTEREM
+exit
+
+interface range fa0/1-10
+
+switchport mode access
+
+switchport access vlan 10
+
+exit
+
+interface range fa0/11-15
+
+switchport mode access
+
+switchport access vlan 20
+
+exit
+
+interface range fa0/16-18
+
+switchport mode trunk
+
+channel-group 1 mode active
+
+exit
+
+interface port-channel 1
+
+switchport mode trunk
+
+exit
+
+interface vlan 10
+
+ip address 192.168.41.2 255.255.255.128
+
+no shutdown
+
+exit
+
+ip default-gateway 192.168.41.1
+
+username admin secret Sziszipww1
+
+ip domain-name sziszi.local
+
+crypto key generate rsa
+
+1024
+
+ip ssh version 2
+
+line vty 0 4
+
+login local
+
+transport input ssh
+
+exit
+
+end
+
+copy running-config startup-config
+
+-----------------------------------
+
+SW02
+
+enable
+
+conf t
+
+hostname SW02
+
+vlan 10
+name IRODA
+exit
+
+vlan 20
+name TANTEREM
+exit
+
+interface range fa0/1-10
+
+switchport mode access
+
+switchport access vlan 10
+
+exit
+
+interface range fa0/11-15
+
+switchport mode access
+
+switchport access vlan 20
+
+exit
+
+interface range fa0/16-18
+
+switchport mode trunk
+
+channel-group 1 mode active
+
+exit
+
+interface port-channel 1
+
+switchport mode trunk
+
+exit
+
+interface fa0/24
+
+switchport mode access
+
+no shutdown
+
+exit
+
+interface vlan 10
+
+ip address 192.168.41.3 255.255.255.128
+
+no shutdown
+
+exit
+
+ip default-gateway 192.168.41.1
+
+username admin secret Sziszipww1
+
+ip domain-name sziszi.local
+
+crypto key generate rsa
+
+1024
+
+ip ssh version 2
+
+line vty 0 4
+
+login local
+
+transport input ssh
+
+exit
+
+end
+
+copy running-config startup-config
+
+-----------------------------------
+
+Wifi
+
+Internet:
+
+IP 192.168.21.5
+
+Mask 255.255.255.248
+
+Gateway 192.168.21.1
+
+DNS 8.8.8.8
+
+
+..................................
+
+LAN:
+
+192.168.50.1
+
+255.255.255.0
+
+..................................
+
+DHCP:
+
+Enabled
+
+Start IP:
+
+192.168.50.155
+
+Maximum Users:
+
+100
+
+DNS:
+
+8.8.8.8
+
+..................................
+
+Wifi:
+
+SSID:
+
+Sziszi_1
+
+WPA2
+
+2026Sziszi
+PC1
+Desktop
+
+IP Configuration
+
+DHCP
+
+-----------------------------------
+
+Végén ellenőrzés
+
+show running-config
+
+-----------------------------------
+
+
+Router:
+
+show ip interface brief
+
+show ip route
+
+show ip ospf neighbor
+
+show ip dhcp binding  			- sziszi_B
+
+show access-lists 			- sziszi_A
+
+-----------------------------------
+
+Switch:
+
+show vlan brief
+
+show etherchannel summary
+
+-----------------------------------
+
+PC1:
+
+ipconfig
+
+ping 192.168.41.1
+
+ping 10.10.11.1
+
+ping 192.168.21.1

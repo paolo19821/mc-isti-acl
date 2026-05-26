@@ -1,0 +1,202 @@
+-----------------------------------
+
+Particionálás, fájlrendszerek csatolása
+
+Lemezek megtekintése:
+
+lsblk
+
+Partíció létrehozása:
+
+sudo fdisk /dev/sdb
+
+n
+p
+1
+ENTER
+ENTER
+w
+
+Ellenőrzés:
+
+lsblk
+
+-----------------------------------
+
+Fájlrendszer létrehozása
+
+sudo mkfs.ext4 /dev/sdb1
+
+-----------------------------------
+
+Csatolási mappa létrehozása
+
+sudo mkdir /adat
+
+Lemez csatolása:
+
+sudo mount /dev/sdb1 /adat
+
+Ellenőrzés:
+
+df -h
+
+Látszania kell:
+
+/dev/sdb1
+/adat
+
+-----------------------------------
+
+Címke beállítása
+
+sudo e2label /dev/sdb1 ADAT
+
+Ellenőrzés:
+
+sudo blkid
+
+-----------------------------------
+
+Automatikus csatolás újraindítás után
+
+UUID lekérése:
+
+sudo blkid
+
+Keresd ki:
+
+/dev/sdb1
+
+Másold ki az UUID értékét.
+
+Fájl szerkesztése:
+
+sudo nano /etc/fstab
+
+Aljára:
+
+UUID=IDE_A_TE_UUID_D /adat ext4 defaults 0 2
+
+Mentés:
+
+CTRL + O
+ENTER
+CTRL + X
+
+Teszt:
+
+sudo mount -a
+
+Ellenőrzés:
+
+df -h
+
+Ha látod:
+
+/dev/sdb1
+
+és:
+
+/adat
+
+akkor újraindítás után is megmarad.
+
+-----------------------------------
+Midnight Commander telepítés
+
+
+
+sudo apt update
+
+sudo apt install mc -y
+
+indítás
+mc
+
+Ha megnyílik a kék kezelőfelület → jó.
+
+Kilépés: KATTINTÁS
+
+-----------------------------------
+
+Apache webszerver telepítés
+
+
+
+sudo apt install apache2 -y
+
+sudo systemctl start apache2
+
+sudo systemctl enable apache2
+
+ellenőrzés
+systemctl status apache2
+
+Ha zöld/active (running) → jó.
+
+kilépés: q
+
+-----------------------------------
+
+Weboldal szerkesztése
+alap webmappa:
+ 
+/var/www/html
+
+sudo nano /var/www/html/index.html
+
+(ctrl k - törli a sorokat)
+...................................
+
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Vizsga weboldal</title>
+    <style>
+        body {
+            background-image: url("images.jpeg");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-position: center;
+            color: black;
+            text-align: center;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <h1>2026. 05. 27.</h1>
+    <h2>Léman Gergő</h2>
+</body>
+</html>
+
+...................................
+
+!!	COPY IMAGE LINK
+
+CTRL O ENTER CTRL X
+
+http://localhost
+
+vagy:
+
+http://127.0.0.1
+
+-----------------------------------
+
+
+
+HTML:
+http://localhost
+
+Apache2:(sudo)
+systemctl status apache2
+
+MC:
+mc
+
+sdb:
+df -h
+
+(sudo blkid)

@@ -1,0 +1,16 @@
+C:\inetpub\wwwroot
+
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Vizsga weboldal</title>
+</head>
+<body>
+    <h1>XY</h1>
+</body>
+</html>
+
+http://localhost
+
+http://127.0.0.1
